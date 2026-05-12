@@ -1,0 +1,33 @@
+name: 🚀 Setup Kind Cluster
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: "Nome do cluster"
+        required: false
+        default: "lab-k8s"
+
+jobs:
+  setup:
+    name: Install deps & create cluster
+    runs-on: self-hosted   # roda no seu servidor com o GitHub Runner
+    env:
+      CLUSTER_NAME: ${{ github.event.inputs.cluster_name || 'lab-k8s' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Docker, Kind & kubectl
+        run: sudo bash scripts/install-deps.sh
+
+      - name: Prepare data dir
+        run: mkdir -p /tmp/kind-data
+
+      - name: Create Kind cluster
+        run: bash scripts/setup-cluster.sh
+
+      - name: Cluster info
+        run: |
+          export KUBECONFIG="$HOME/.kube/config-${CLUSTER_NAME}"
+          kubectl cluster-info
+          kubectl get nodes -o wide
+          kubectl get pods -A

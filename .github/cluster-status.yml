@@ -1,0 +1,25 @@
+name: 🔍 Cluster Status
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"   # verifica a cada 6 horas
+
+jobs:
+  status:
+    name: Check cluster health
+    runs-on: self-hosted
+    env:
+      CLUSTER_NAME: lab-k8s
+    steps:
+      - name: Cluster list
+        run: kind get clusters 2>/dev/null || echo "Nenhum cluster ativo."
+
+      - name: Node status
+        run: |
+          export KUBECONFIG="$HOME/.kube/config-${CLUSTER_NAME}"
+          kubectl get nodes -o wide 2>/dev/null || echo "Cluster não acessível."
+
+      - name: Pod health
+        run: |
+          export KUBECONFIG="$HOME/.kube/config-${CLUSTER_NAME}"
+          kubectl get pods -A 2>/dev/null || true

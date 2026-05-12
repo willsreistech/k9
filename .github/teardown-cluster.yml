@@ -1,0 +1,23 @@
+name: 🗑️ Teardown Kind Cluster
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: "Nome do cluster a remover"
+        required: false
+        default: "lab-k8s"
+
+jobs:
+  teardown:
+    name: Delete cluster
+    runs-on: self-hosted
+    env:
+      CLUSTER_NAME: ${{ github.event.inputs.cluster_name || 'lab-k8s' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Delete Kind cluster
+        run: bash scripts/teardown-cluster.sh
+
+      - name: List remaining clusters
+        run: kind get clusters 2>/dev/null || echo "Nenhum cluster ativo."
