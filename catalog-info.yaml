@@ -1,0 +1,26 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: k9-kind-lab
+  title: K9 — Kind Kubernetes Lab
+  description: Laboratório local de Kubernetes com Kind. Gerenciado via GitHub Actions no self-hosted runner.
+  annotations:
+    github.com/project-slug: willsreis/k9
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - kubernetes
+    - kind
+    - infrastructure
+    - lab
+  links:
+    - url: https://github.com/willsreis/k9/actions
+      title: GitHub Actions
+      icon: github
+    - url: https://kind.sigs.k8s.io
+      title: Kind docs
+      icon: docs
+spec:
+  type: infrastructure
+  lifecycle: experimental
+  owner: user:willsreis
+  system: kind-lab
