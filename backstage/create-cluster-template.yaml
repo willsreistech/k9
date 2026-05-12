@@ -1,0 +1,139 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Template 1 — Criar Cluster Kind
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-kind-cluster
+  title: 🚀 Criar Cluster Kind
+  description: Provisiona um cluster Kubernetes local usando Kind no self-hosted runner. Instala Docker, Kind e kubectl se necessário.
+  tags:
+    - kubernetes
+    - kind
+    - infrastructure
+spec:
+  owner: user:willsreis
+  type: infrastructure
+
+  parameters:
+    - title: Configurar o cluster
+      required:
+        - cluster_name
+      properties:
+        cluster_name:
+          title: Nome do cluster
+          type: string
+          default: lab-k8s
+          description: Nome usado para identificar o cluster Kind (ex. lab-k8s, dev-cluster, staging)
+          pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+          ui:autofocus: true
+
+  steps:
+    - id: dispatch
+      name: Disparar workflow setup-cluster
+      action: github:actions:dispatch
+      input:
+        repoUrl: github.com?owner=willsreis&repo=k9
+        workflowId: setup-cluster.yml
+        branchOrTagName: main
+        workflowInputs:
+          cluster_name: ${{ parameters.cluster_name }}
+
+  output:
+    links:
+      - title: Ver execução no GitHub Actions
+        url: https://github.com/willsreis/k9/actions/workflows/setup-cluster.yml
+        icon: github
+      - title: Repositório k9
+        url: https://github.com/willsreis/k9
+        icon: github
+
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Template 2 — Remover Cluster Kind
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: teardown-kind-cluster
+  title: 🗑️ Remover Cluster Kind
+  description: Remove um cluster Kind existente no self-hosted runner, liberando recursos.
+  tags:
+    - kubernetes
+    - kind
+    - infrastructure
+spec:
+  owner: user:willsreis
+  type: infrastructure
+
+  parameters:
+    - title: Identificar o cluster
+      required:
+        - cluster_name
+      properties:
+        cluster_name:
+          title: Nome do cluster a remover
+          type: string
+          default: lab-k8s
+          description: Deve corresponder exatamente ao nome usado na criação
+          pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+          ui:autofocus: true
+
+  steps:
+    - id: dispatch
+      name: Disparar workflow teardown-cluster
+      action: github:actions:dispatch
+      input:
+        repoUrl: github.com?owner=willsreis&repo=k9
+        workflowId: teardown-cluster.yml
+        branchOrTagName: main
+        workflowInputs:
+          cluster_name: ${{ parameters.cluster_name }}
+
+  output:
+    links:
+      - title: Ver execução no GitHub Actions
+        url: https://github.com/willsreis/k9/actions/workflows/teardown-cluster.yml
+        icon: github
+
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Template 3 — Verificar Status dos Clusters
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: status-kind-cluster
+  title: 🔍 Verificar Status dos Clusters Kind
+  description: Dispara o workflow de status para verificar os clusters Kind ativos e a saúde dos nós e pods.
+  tags:
+    - kubernetes
+    - kind
+    - infrastructure
+spec:
+  owner: user:willsreis
+  type: infrastructure
+
+  parameters:
+    - title: Confirmar verificação
+      properties:
+        confirm:
+          title: Disparar verificação de status agora?
+          type: boolean
+          default: true
+          description: Será executado o cluster-status.yml no runner self-hosted
+
+  steps:
+    - id: dispatch
+      name: Disparar workflow cluster-status
+      action: github:actions:dispatch
+      input:
+        repoUrl: github.com?owner=willsreis&repo=k9
+        workflowId: cluster-status.yml
+        branchOrTagName: main
+
+  output:
+    links:
+      - title: Ver resultado no GitHub Actions
+        url: https://github.com/willsreis/k9/actions/workflows/cluster-status.yml
+        icon: github
