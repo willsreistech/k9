@@ -5,7 +5,7 @@ metadata:
   title: K9 — Kind Kubernetes Lab
   description: Laboratório local de Kubernetes com Kind. Gerenciado via GitHub Actions no self-hosted runner.
   annotations:
-    github.com/project-slug: willsreis/k9
+    github.com/project-slug: willsreistech/k9
     backstage.io/techdocs-ref: dir:.
   tags:
     - kubernetes
@@ -13,7 +13,7 @@ metadata:
     - infrastructure
     - lab
   links:
-    - url: https://github.com/willsreis/k9/actions
+    - url: https://github.com/willsreistech/k9/actions
       title: GitHub Actions
       icon: github
     - url: https://kind.sigs.k8s.io
