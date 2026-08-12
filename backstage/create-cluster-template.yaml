@@ -33,7 +33,7 @@ spec:
       name: Disparar workflow setup-cluster
       action: github:actions:dispatch
       input:
-        repoUrl: github.com?owner=willsreis&repo=k9
+        repoUrl: github.com?owner=willsreistech&repo=k9
         workflowId: setup-cluster.yml
         branchOrTagName: main
         workflowInputs:
@@ -42,10 +42,10 @@ spec:
   output:
     links:
       - title: Ver execução no GitHub Actions
-        url: https://github.com/willsreis/k9/actions/workflows/setup-cluster.yml
+        url: https://github.com/willsreistech/k9/actions/workflows/setup-cluster.yml
         icon: github
       - title: Repositório k9
-        url: https://github.com/willsreis/k9
+        url: https://github.com/willsreistech/k9
         icon: github
 
 ---
@@ -84,7 +84,7 @@ spec:
       name: Disparar workflow teardown-cluster
       action: github:actions:dispatch
       input:
-        repoUrl: github.com?owner=willsreis&repo=k9
+        repoUrl: github.com?owner=willsreistech&repo=k9
         workflowId: teardown-cluster.yml
         branchOrTagName: main
         workflowInputs:
@@ -93,7 +93,7 @@ spec:
   output:
     links:
       - title: Ver execução no GitHub Actions
-        url: https://github.com/willsreis/k9/actions/workflows/teardown-cluster.yml
+        url: https://github.com/willsreistech/k9/actions/workflows/teardown-cluster.yml
         icon: github
 
 ---
@@ -128,12 +128,12 @@ spec:
       name: Disparar workflow cluster-status
       action: github:actions:dispatch
       input:
-        repoUrl: github.com?owner=willsreis&repo=k9
+        repoUrl: github.com?owner=willsreistech&repo=k9
         workflowId: cluster-status.yml
         branchOrTagName: main
 
   output:
     links:
       - title: Ver resultado no GitHub Actions
-        url: https://github.com/willsreis/k9/actions/workflows/cluster-status.yml
+        url: https://github.com/willsreistech/k9/actions/workflows/cluster-status.yml
         icon: github
