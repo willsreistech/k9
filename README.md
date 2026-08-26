@@ -37,7 +37,7 @@ Backstage ──dispatch──> GitHub Actions
 ## Pré-requisitos
 
 - Ubuntu 22.04 ou 24.04.
-- Docker, Kind e kubectl; `make deps` pode instalá-los com privilégios de root.
+- Docker previamente instalado; `make deps` instala Kind e kubectl no usuário atual. Executado como root, também pode instalar o Docker no Ubuntu.
 - Para automação, um runner com as labels `self-hosted` e `production`.
 - O usuário operador deve ter acesso ao daemon Docker.
 
@@ -117,7 +117,7 @@ Os workflows manuais ficam em **Actions → Run workflow**:
 | Validate | Executa lint em scripts e YAML |
 | TechDocs | Publica esta documentação no Backstage |
 
-O setup instala ou atualiza as dependências por padrão por meio do input `install_dependencies`, pois o bootstrap requer Docker, Kind e kubectl. Depois de preparar definitivamente o runner, você pode desativar esse input nas execuções seguintes para evitar o uso de `sudo`.
+O setup instala ou atualiza Kind e kubectl em `$HOME/.local/bin` por padrão, sem usar `sudo`. O Docker precisa estar previamente instalado e acessível pelo usuário do runner. Depois de preparar definitivamente o runner, você pode desativar o input `install_dependencies` nas execuções seguintes.
 
 Os workflows usam um grupo global de concorrência para evitar setup, status e teardown simultâneos. Como as portas do host são fixas, mantenha apenas um destes clusters ativo por host. Se houver vários runners, use a label `production` somente no host que possui o cluster.
 

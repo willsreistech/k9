@@ -6,6 +6,14 @@ PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/versions.env"
 
+if [[ "$EUID" -eq 0 ]]; then
+  INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
+else
+  INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
+fi
+mkdir -p "$INSTALL_DIR"
+export PATH="$INSTALL_DIR:$PATH"
+
 case "$(uname -m)" in
   x86_64) ARCH=amd64 ;;
   aarch64|arm64) ARCH=arm64 ;;
@@ -58,7 +66,7 @@ install_kind() {
   curl -fsSLo "$tmp_dir/kind-linux-${ARCH}.sha256sum" \
     "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-${ARCH}.sha256sum"
   (cd "$tmp_dir" && sha256sum --check --status "kind-linux-${ARCH}.sha256sum")
-  install -m 0755 "$tmp_dir/kind-linux-${ARCH}" /usr/local/bin/kind
+  install -m 0755 "$tmp_dir/kind-linux-${ARCH}" "$INSTALL_DIR/kind"
   rm -rf -- "$tmp_dir"
   log "Kind instalado: $(kind version)"
 }
@@ -75,23 +83,29 @@ install_kubectl() {
   curl -fsSLo "$tmp_dir/kubectl" "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl"
   curl -fsSLo "$tmp_dir/kubectl.sha256" "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl.sha256"
   printf '%s  %s\n' "$(tr -d '[:space:]' < "$tmp_dir/kubectl.sha256")" "$tmp_dir/kubectl" | sha256sum --check --status
-  install -m 0755 "$tmp_dir/kubectl" /usr/local/bin/kubectl
+  install -m 0755 "$tmp_dir/kubectl" "$INSTALL_DIR/kubectl"
   rm -rf -- "$tmp_dir"
   log "kubectl instalado: $(kubectl version --client --short 2>/dev/null || kubectl version --client)"
 }
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 main() {
-  if [[ "$EUID" -ne 0 ]]; then
-    echo "Execute como root: sudo $0"
+  if [[ "$EUID" -eq 0 ]]; then
+    [[ -r /etc/os-release ]] && source /etc/os-release
+    [[ "${ID:-}" == "ubuntu" ]] || { echo "Este instalador suporta apenas Ubuntu." >&2; exit 1; }
+    install_docker
+    configure_docker_user
+  elif ! command -v docker &>/dev/null; then
+    echo "Docker nao encontrado. Instale-o previamente no host com privilegios administrativos." >&2
+    exit 1
+  elif ! docker info &>/dev/null; then
+    echo "Docker existe, mas o usuario '$USER' nao consegue acessar o daemon." >&2
+    echo "Adicione o usuario ao grupo docker e reinicie o servico do runner." >&2
     exit 1
   fi
-  [[ -r /etc/os-release ]] && source /etc/os-release
-  [[ "${ID:-}" == "ubuntu" ]] || { echo "Este instalador suporta apenas Ubuntu." >&2; exit 1; }
-  install_docker
-  configure_docker_user
   install_kind
   install_kubectl
+  log "Binarios instalados em '$INSTALL_DIR'."
   log "✅ Todas as dependências instaladas com sucesso!"
 }
 

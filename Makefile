@@ -7,8 +7,8 @@ help: ## Mostra esta ajuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 	  awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
-deps: ## Instala Docker, Kind e kubectl (requer sudo)
-	sudo bash scripts/install-deps.sh
+deps: ## Instala Kind e kubectl; Docker deve existir para uso sem root
+	bash scripts/install-deps.sh
 
 create: ## Cria o cluster Kind
 	bash scripts/setup-cluster.sh

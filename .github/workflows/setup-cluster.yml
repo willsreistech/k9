@@ -8,7 +8,7 @@ on:
         default: "lab-k8s"
         type: string
       install_dependencies:
-        description: "Instalar/atualizar dependencias no host (requer sudo)"
+        description: "Instalar/atualizar Kind e kubectl no usuario do runner"
         required: false
         default: true
         type: boolean
@@ -30,9 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Install Docker, Kind & kubectl
+      - name: Install Kind & kubectl
         if: ${{ inputs.install_dependencies }}
-        run: sudo bash scripts/install-deps.sh
+        run: |
+          bash scripts/install-deps.sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Create Kind cluster
         run: bash scripts/setup-cluster.sh
