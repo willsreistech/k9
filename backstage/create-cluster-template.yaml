@@ -25,7 +25,7 @@ spec:
           type: string
           default: lab-k8s
           description: Nome usado para identificar o cluster Kind (ex. lab-k8s, dev-cluster, staging)
-          pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+          pattern: "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
           ui:autofocus: true
 
   steps:
@@ -76,7 +76,7 @@ spec:
           type: string
           default: lab-k8s
           description: Deve corresponder exatamente ao nome usado na criação
-          pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+          pattern: "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
           ui:autofocus: true
 
   steps:

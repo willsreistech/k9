@@ -6,21 +6,33 @@ on:
         description: "Nome do cluster"
         required: false
         default: "lab-k8s"
+        type: string
+      install_dependencies:
+        description: "Instalar/atualizar dependencias no host (requer sudo)"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kind-host-k9-lab
+  cancel-in-progress: false
 
 jobs:
   setup:
     name: Install deps & create cluster
-    runs-on: self-hosted   # roda no seu servidor com o GitHub Runner
+    runs-on: [self-hosted, linux, k9-lab]
+    timeout-minutes: 15
     env:
       CLUSTER_NAME: ${{ github.event.inputs.cluster_name || 'lab-k8s' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Install Docker, Kind & kubectl
+        if: ${{ inputs.install_dependencies }}
         run: sudo bash scripts/install-deps.sh
-
-      - name: Prepare data dir
-        run: mkdir -p /tmp/kind-data
 
       - name: Create Kind cluster
         run: bash scripts/setup-cluster.sh
@@ -31,3 +43,4 @@ jobs:
           kubectl cluster-info
           kubectl get nodes -o wide
           kubectl get pods -A
+          kubectl wait --for=condition=Ready nodes --all --timeout=60s

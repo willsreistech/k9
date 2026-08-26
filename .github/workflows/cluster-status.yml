@@ -4,22 +4,39 @@ on:
   schedule:
     - cron: "0 */6 * * *"   # verifica a cada 6 horas
 
+permissions:
+  contents: read
+
+concurrency:
+  group: kind-host-k9-lab
+  cancel-in-progress: false
+
 jobs:
   status:
     name: Check cluster health
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, k9-lab]
+    timeout-minutes: 5
     env:
       CLUSTER_NAME: lab-k8s
     steps:
       - name: Cluster list
-        run: kind get clusters 2>/dev/null || echo "Nenhum cluster ativo."
+        run: kind get clusters | grep -Fx "$CLUSTER_NAME"
 
       - name: Node status
         run: |
           export KUBECONFIG="$HOME/.kube/config-${CLUSTER_NAME}"
-          kubectl get nodes -o wide 2>/dev/null || echo "Cluster não acessível."
+          kubectl cluster-info
+          kubectl get --raw=/readyz
+          kubectl wait --for=condition=Ready nodes --all --timeout=60s
+          kubectl get nodes -o wide
 
       - name: Pod health
         run: |
           export KUBECONFIG="$HOME/.kube/config-${CLUSTER_NAME}"
-          kubectl get pods -A 2>/dev/null || true
+          kubectl get pods -A
+          unhealthy="$(kubectl get pods -A --field-selector=status.phase!=Running,status.phase!=Succeeded --no-headers)"
+          if [[ -n "$unhealthy" ]]; then
+            echo "Pods fora de Running/Succeeded:" >&2
+            echo "$unhealthy" >&2
+            exit 1
+          fi

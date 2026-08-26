@@ -18,10 +18,15 @@ on:
       - '.github/workflows/techdocs.yml'
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   publish:
-    uses: willsreistech/backstageIO/.github/workflows/techdocs-publish-reusable.yml@main
-    secrets: inherit
+    uses: willsreistech/backstageIO/.github/workflows/techdocs-publish-reusable.yml@11b7eb533fcac6e0cd88c561aceaaa780311c7c6
+    secrets:
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
     with:
       # namespace/kind/name — deve bater com o catalog-info.yaml
       entity: default/component/k9-kind-lab

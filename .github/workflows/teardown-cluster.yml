@@ -6,15 +6,24 @@ on:
         description: "Nome do cluster a remover"
         required: false
         default: "lab-k8s"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kind-host-k9-lab
+  cancel-in-progress: false
 
 jobs:
   teardown:
     name: Delete cluster
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, k9-lab]
+    timeout-minutes: 10
     env:
       CLUSTER_NAME: ${{ github.event.inputs.cluster_name || 'lab-k8s' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Delete Kind cluster
         run: bash scripts/teardown-cluster.sh

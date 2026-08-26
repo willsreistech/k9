@@ -1,79 +1,194 @@
-# labsk8 — Kubernetes Lab com Kind
+# K9 — laboratório Kubernetes com Kind
 
-Cluster Kubernetes de laboratório usando **Kind** (Kubernetes in Docker) em Ubuntu 22.04/24.04, com automação via **GitHub Actions** rodando no seu self-hosted runner.
+O K9 provisiona um cluster Kubernetes local com [Kind](https://kind.sigs.k8s.io/) em um host Linux. O ciclo de vida pode ser operado pelo terminal, GitHub Actions ou templates do Backstage.
 
-## 🗂️ Estrutura
+O projeto foi pensado para estudo e desenvolvimento. Ele não substitui um cluster Kubernetes de produção.
 
+## O que ele entrega
+
+- Um control plane e dois workers.
+- Kubernetes e imagens dos nodes fixados por versão e digest.
+- API Server e NodePorts acessíveis apenas pelo host (`127.0.0.1`).
+- Dados separados por cluster em `$HOME/.local/share/kind`.
+- Namespace `lab-workloads` com Pod Security `restricted`, quota e limites padrão.
+- NetworkPolicy default-deny, com uma exceção de saída para DNS.
+- Health check agendado a cada seis horas.
+- Templates de criação, remoção e status no Backstage.
+- CI para scripts, YAML e dependências do GitHub Actions.
+
+## Arquitetura
+
+```text
+Backstage ──dispatch──> GitHub Actions
+                           │
+                           v
+                  runner self-hosted
+                           │
+                           v
+                         Docker
+                           │
+          ┌────────────────┼────────────────┐
+          v                v                v
+   control-plane        worker-1         worker-2
+          │
+          └── localhost:6443 / 30000 / 30080 / 30443
 ```
-labsk8/
-├── .github/workflows/
-│   ├── setup-cluster.yml     # Cria o cluster
-│   ├── teardown-cluster.yml  # Remove o cluster
-│   └── cluster-status.yml    # Health check (a cada 6h)
-├── kind/
-│   └── cluster-config.yaml   # Topologia: 1 control-plane + 2 workers
-├── scripts/
-│   ├── install-deps.sh       # Instala Docker + Kind + kubectl
-│   ├── setup-cluster.sh      # Cria o cluster Kind
-│   └── teardown-cluster.sh   # Remove o cluster Kind
-└── Makefile                  # Atalhos para comandos comuns
-```
 
-## 🚀 Pré-requisitos no servidor
+## Pré-requisitos
 
-- Ubuntu 22.04 ou 24.04
-- GitHub Actions **self-hosted runner** instalado e online
-- Sudo sem senha para o usuário do runner (ou ajuste conforme necessário)
+- Ubuntu 22.04 ou 24.04.
+- Docker, Kind e kubectl; `make deps` pode instalá-los com privilégios de root.
+- Para automação, um runner com as labels `self-hosted`, `linux` e `k9-lab`.
+- O usuário operador deve ter acesso ao daemon Docker.
 
-## ⚡ Uso rápido (via terminal no servidor)
+> Pertencer ao grupo `docker` equivale, na prática, a possuir privilégios elevados no host. Use um servidor dedicado ao laboratório.
+
+## Uso local
 
 ```bash
-# 1. Instalar Docker, Kind e kubectl
+# Instala/atualiza dependências e valida os downloads por SHA-256
 make deps
 
-# 2. Criar o cluster (1 control-plane + 2 workers)
+# Cria o cluster e aplica o baseline
 make create
 
-# 3. Verificar status
+# Configura o terminal atual
+export KUBECONFIG="$HOME/.kube/config-lab-k8s"
+
+# Exibe nodes e pods
 make status
 
-# 4. Configurar KUBECONFIG na sessão atual
-$(make kubeconfig)
-
-# 5. Remover cluster
+# Remove o cluster e preserva os dados
 make delete
+
+# Remove o cluster e os dados persistentes
+make delete-data
 ```
 
-## 🤖 Uso via GitHub Actions
+Para usar outro nome:
 
-Os workflows ficam disponíveis em **Actions → Run workflow**:
+```bash
+CLUSTER_NAME=dev-cluster make create
+CLUSTER_NAME=dev-cluster make status
+CLUSTER_NAME=dev-cluster make delete
+```
 
-| Workflow | O que faz |
+Nomes aceitam apenas letras minúsculas, números e hifens. `DATA_ROOT` permite trocar a raiz de persistência:
+
+```bash
+DATA_ROOT=/caminho/dedicado CLUSTER_NAME=dev-cluster make create
+```
+
+## Namespace para workloads
+
+Use `lab-workloads` para os exercícios:
+
+```bash
+kubectl -n lab-workloads apply -f minha-aplicacao.yaml
+kubectl -n lab-workloads get resourcequota,limitrange,networkpolicy
+```
+
+A política de rede bloqueia tráfego por padrão. Cada aplicação deve declarar explicitamente o ingresso e a saída de que precisa. A CNI padrão do Kind pode não aplicar NetworkPolicy; para enforcement real, instale uma CNI compatível, como Calico ou Cilium, e desative `kindnet` na configuração.
+
+## Portas
+
+| Porta no host | Finalidade |
+|---:|---|
+| `6443` | API Server Kubernetes |
+| `30080` | NodePort HTTP |
+| `30443` | NodePort HTTPS |
+| `30000` | NodePort genérico |
+
+Todas escutam somente em `127.0.0.1`. Para acesso remoto, prefira VPN ou túnel SSH:
+
+```bash
+ssh -L 6443:127.0.0.1:6443 usuario@servidor
+```
+
+## GitHub Actions
+
+Os workflows manuais ficam em **Actions → Run workflow**:
+
+| Workflow | Função |
 |---|---|
-| `Setup Kind Cluster` | Instala tudo e cria o cluster |
-| `Teardown Kind Cluster` | Remove o cluster |
-| `Cluster Status` | Mostra health dos nodes/pods |
+| Setup Kind Cluster | Cria o cluster e aplica o baseline |
+| Teardown Kind Cluster | Remove o cluster |
+| Cluster Status | Valida API Server, nodes e pods |
+| Validate | Executa lint em scripts e YAML |
+| TechDocs | Publica esta documentação no Backstage |
 
-## 🌐 Portas expostas
+As dependências devem ser previamente instaladas no runner. O input `install_dependencies` do setup existe para bootstrap e fica desativado por padrão, pois executa o instalador com `sudo`.
 
-| Porta host | Uso |
-|---|---|
-| `30080` | HTTP via NodePort |
-| `30443` | HTTPS via NodePort |
-| `30000` | Porta genérica NodePort |
-| `6443`  | API Server Kubernetes |
+Os workflows usam um grupo global de concorrência para evitar setup, status e teardown simultâneos. Como as portas do host são fixas, mantenha apenas um destes clusters ativo por host. Se houver vários runners, use a label `k9-lab` somente no host que possui o cluster.
 
-## 🔧 Topologia do cluster
+## Backstage
 
+- `catalog-info.yaml` registra o componente e o TechDocs.
+- `backstage/create-cluster-template.yaml` contém templates de criação, remoção e status.
+- Os templates disparam os mesmos workflows usados pela operação manual.
+
+## Atualização de versões
+
+As versões ficam em `versions.env`. Ao atualizar o Kind:
+
+1. Consulte as release notes oficiais.
+2. Escolha uma imagem `kindest/node` publicada para essa versão.
+3. Copie a referência completa, incluindo `@sha256:`.
+4. Atualize Kind, kubectl e imagem em conjunto.
+5. Execute `make validate` e crie um cluster de teste.
+
+## Estrutura
+
+```text
+.
+├── .github/workflows/       # Automação e validações
+├── backstage/               # Templates do Scaffolder
+├── docs/                    # Entrada do TechDocs
+├── kind/                    # Template de configuração do cluster
+├── manifests/               # Baseline declarativo do Kubernetes
+├── scripts/                 # Instalação e ciclo de vida
+├── catalog-info.yaml        # Componente do catálogo
+├── Makefile                 # Comandos operacionais
+├── mkdocs.yml               # Configuração do TechDocs
+└── versions.env             # Versões testadas
 ```
-control-plane  (kindest/node)
-worker-1       (kindest/node)
-worker-2       (kindest/node)
+
+## Solução de problemas
+
+Cluster já existe:
+
+```bash
+kind get clusters
+make delete
+make create
 ```
 
-CNI padrão: **kindnet**. Para trocar por Calico ou Cilium, edite `kind/cluster-config.yaml` e defina `disableDefaultCNI: true`.
+Permissão negada no Docker:
 
-## 📁 Persistência
+```bash
+docker info
+groups
+```
 
-O diretório `/tmp/kind-data` do host é montado em `/data` em todos os nodes.  
-Altere `hostPath` em `kind/cluster-config.yaml` para usar outro caminho.
+Após entrar no grupo `docker`, encerre e abra a sessão novamente.
+
+Para diagnóstico:
+
+```bash
+export KUBECONFIG="$HOME/.kube/config-lab-k8s"
+kubectl cluster-info dump
+kubectl get events -A --sort-by=.lastTimestamp
+docker ps --filter label=io.x-k8s.kind.cluster=lab-k8s
+```
+
+## Segurança e limitações
+
+- Não exponha o Docker socket nem as portas do cluster diretamente à internet.
+- Proteja a branch principal e limite quem pode executar workflows no runner.
+- O armazenamento local não possui alta disponibilidade nem backup automático.
+- O Kind usa containers como nodes; falhas do host afetam todo o cluster.
+- O teardown preserva dados por padrão para evitar perda acidental.
+
+## Licença
+
+Uso interno e educacional. Adicione um arquivo `LICENSE` caso o projeto seja distribuído publicamente.

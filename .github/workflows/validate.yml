@@ -1,0 +1,32 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install linters
+        run: sudo apt-get update && sudo apt-get install -y shellcheck yamllint
+      - name: Validate shell
+        run: |
+          bash -n scripts/*.sh
+          shellcheck scripts/*.sh
+      - name: Validate YAML
+        run: yamllint -c .yamllint.yml .
+      - name: Render Kind configuration
+        run: |
+          scripts/render-kind-config.sh > /tmp/kind-config.yaml
+          if grep -Eq '__DATA_DIR__|__KIND_NODE_IMAGE__' /tmp/kind-config.yaml; then
+            echo "Configuração Kind contém placeholders não resolvidos" >&2
+            exit 1
+          fi
+          yamllint -c .yamllint.yml /tmp/kind-config.yaml
