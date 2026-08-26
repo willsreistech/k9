@@ -10,7 +10,7 @@ on:
       install_dependencies:
         description: "Instalar/atualizar dependencias no host (requer sudo)"
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:

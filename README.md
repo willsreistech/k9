@@ -117,7 +117,7 @@ Os workflows manuais ficam em **Actions → Run workflow**:
 | Validate | Executa lint em scripts e YAML |
 | TechDocs | Publica esta documentação no Backstage |
 
-As dependências devem ser previamente instaladas no runner. O input `install_dependencies` do setup existe para bootstrap e fica desativado por padrão, pois executa o instalador com `sudo`.
+O setup instala ou atualiza as dependências por padrão por meio do input `install_dependencies`, pois o bootstrap requer Docker, Kind e kubectl. Depois de preparar definitivamente o runner, você pode desativar esse input nas execuções seguintes para evitar o uso de `sudo`.
 
 Os workflows usam um grupo global de concorrência para evitar setup, status e teardown simultâneos. Como as portas do host são fixas, mantenha apenas um destes clusters ativo por host. Se houver vários runners, use a label `production` somente no host que possui o cluster.
 
