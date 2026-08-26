@@ -38,7 +38,7 @@ Backstage ──dispatch──> GitHub Actions
 
 - Ubuntu 22.04 ou 24.04.
 - Docker, Kind e kubectl; `make deps` pode instalá-los com privilégios de root.
-- Para automação, um runner com as labels `self-hosted`, `linux` e `k9-lab`.
+- Para automação, um runner com as labels `self-hosted` e `production`.
 - O usuário operador deve ter acesso ao daemon Docker.
 
 > Pertencer ao grupo `docker` equivale, na prática, a possuir privilégios elevados no host. Use um servidor dedicado ao laboratório.
@@ -119,7 +119,7 @@ Os workflows manuais ficam em **Actions → Run workflow**:
 
 As dependências devem ser previamente instaladas no runner. O input `install_dependencies` do setup existe para bootstrap e fica desativado por padrão, pois executa o instalador com `sudo`.
 
-Os workflows usam um grupo global de concorrência para evitar setup, status e teardown simultâneos. Como as portas do host são fixas, mantenha apenas um destes clusters ativo por host. Se houver vários runners, use a label `k9-lab` somente no host que possui o cluster.
+Os workflows usam um grupo global de concorrência para evitar setup, status e teardown simultâneos. Como as portas do host são fixas, mantenha apenas um destes clusters ativo por host. Se houver vários runners, use a label `production` somente no host que possui o cluster.
 
 ## Backstage
 

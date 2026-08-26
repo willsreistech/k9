@@ -17,13 +17,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: kind-host-k9-lab
+  group: kind-host-production
   cancel-in-progress: false
 
 jobs:
   setup:
     name: Install deps & create cluster
-    runs-on: [self-hosted, linux, k9-lab]
+    runs-on: [self-hosted, production]
     timeout-minutes: 15
     env:
       CLUSTER_NAME: ${{ github.event.inputs.cluster_name || 'lab-k8s' }}
