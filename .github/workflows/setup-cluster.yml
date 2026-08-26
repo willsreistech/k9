@@ -24,6 +24,7 @@ jobs:
   setup:
     name: Install deps & create cluster
     runs-on: [self-hosted, production]
+    environment: production
     timeout-minutes: 15
     env:
       CLUSTER_NAME: ${{ github.event.inputs.cluster_name || 'lab-k8s' }}

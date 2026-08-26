@@ -19,6 +19,7 @@ jobs:
   teardown:
     name: Delete cluster
     runs-on: [self-hosted, production]
+    environment: production
     timeout-minutes: 10
     env:
       CLUSTER_NAME: ${{ github.event.inputs.cluster_name || 'lab-k8s' }}
