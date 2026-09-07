@@ -24,10 +24,9 @@ permissions:
 jobs:
   publish:
     uses: willsreistech/backstageIO/.github/workflows/techdocs-publish-reusable.yml@8945217e40a68ceae4ab183160fa0154c3817ad1
-    secrets:
-      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
-      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+    secrets: inherit
     with:
       # namespace/kind/name — deve bater com o catalog-info.yaml
       entity: default/component/k9-kind-lab
+      runner: k9
       minio-endpoint: http://192.168.1.250:9000
