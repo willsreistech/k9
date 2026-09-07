@@ -91,7 +91,11 @@ install_kubectl() {
 # ── Main ─────────────────────────────────────────────────────────────────────
 main() {
   if [[ "$EUID" -eq 0 ]]; then
-    [[ -r /etc/os-release ]] && source /etc/os-release
+    if [[ -r /etc/os-release ]]; then
+      # O arquivo pertence ao sistema operacional e nao faz parte do repositorio.
+      # shellcheck disable=SC1091
+      source /etc/os-release
+    fi
     [[ "${ID:-}" == "ubuntu" ]] || { echo "Este instalador suporta apenas Ubuntu." >&2; exit 1; }
     install_docker
     configure_docker_user
