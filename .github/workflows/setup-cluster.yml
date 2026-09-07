@@ -42,7 +42,7 @@ concurrency:
 jobs:
   setup:
     name: Install deps & create cluster
-    runs-on: k9-runner
+    runs-on: k9
     environment: production
     timeout-minutes: 15
     env:
