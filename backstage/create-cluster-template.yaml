@@ -29,22 +29,23 @@ spec:
           description: Nome usado para identificar o cluster Kind (ex. lab-k8s, dev-cluster, staging)
           pattern: "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
           ui:autofocus: true
+        # github:actions:dispatch exige todos os workflowInputs como string.
         node_cpu:
           title: vCPU por nó
-          type: integer
-          default: 1
+          type: string
+          default: "1"
           description: Limite de CPU aplicado a cada um dos 3 nós (perfil leve para demonstração)
-          enum: [1, 2, 4]
+          enum: ["1", "2", "4"]
           enumNames:
             - 1 vCPU — padrão
             - 2 vCPU
             - 4 vCPU
         node_memory_gb:
           title: Memória por nó (GiB)
-          type: integer
-          default: 2
+          type: string
+          default: "2"
           description: Limite de memória aplicado a cada um dos 3 nós (perfil leve para demonstração)
-          enum: [1, 2, 4, 8]
+          enum: ["1", "2", "4", "8"]
           enumNames:
             - 1 GiB — mínimo
             - 2 GiB — padrão
