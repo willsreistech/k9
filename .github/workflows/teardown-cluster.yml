@@ -18,7 +18,7 @@ concurrency:
 jobs:
   teardown:
     name: Delete cluster
-    runs-on: [self-hosted, production]
+    runs-on: k9-runner
     environment: production
     timeout-minutes: 10
     env:
