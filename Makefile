@@ -1,5 +1,9 @@
 CLUSTER_NAME ?= lab-k8s
+NODE_CPU ?= 1
+NODE_MEMORY_GB ?= 2
 export CLUSTER_NAME
+export NODE_CPU
+export NODE_MEMORY_GB
 
 .PHONY: help deps create delete delete-data status kubeconfig baseline validate
 

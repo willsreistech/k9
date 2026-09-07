@@ -21,12 +21,22 @@ jobs:
         run: |
           bash -n scripts/*.sh
           shellcheck scripts/*.sh
+      - name: Validate resource inputs
+        run: |
+          if NODE_CPU=3 scripts/setup-cluster.sh 2>/dev/null; then
+            echo "NODE_CPU invalido foi aceito" >&2
+            exit 1
+          fi
+          if NODE_MEMORY_GB=3 scripts/configure-node-resources.sh 2>/dev/null; then
+            echo "NODE_MEMORY_GB invalido foi aceito" >&2
+            exit 1
+          fi
       - name: Validate YAML
         run: yamllint -c .yamllint.yml .
       - name: Render Kind configuration
         run: |
           scripts/render-kind-config.sh > /tmp/kind-config.yaml
-          if grep -Eq '__DATA_DIR__|__KIND_NODE_IMAGE__' /tmp/kind-config.yaml; then
+          if grep -Eq '__DATA_DIR__|__KIND_NODE_IMAGE__|__NODE_CPU__|__NODE_MEMORY_GB__' /tmp/kind-config.yaml; then
             echo "Configuração Kind contém placeholders não resolvidos" >&2
             exit 1
           fi

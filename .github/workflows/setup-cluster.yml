@@ -7,6 +7,25 @@ on:
         required: false
         default: "lab-k8s"
         type: string
+      node_cpu:
+        description: "vCPU por no"
+        required: false
+        default: "1"
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "4"
+      node_memory_gb:
+        description: "Memoria por no em GiB"
+        required: false
+        default: "2"
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "4"
+          - "8"
       install_dependencies:
         description: "Instalar/atualizar Kind e kubectl no usuario do runner"
         required: false
@@ -28,6 +47,8 @@ jobs:
     timeout-minutes: 15
     env:
       CLUSTER_NAME: ${{ github.event.inputs.cluster_name || 'lab-k8s' }}
+      NODE_CPU: ${{ github.event.inputs.node_cpu || '1' }}
+      NODE_MEMORY_GB: ${{ github.event.inputs.node_memory_gb || '2' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -44,6 +65,7 @@ jobs:
         run: |
           export KUBECONFIG="$HOME/.kube/config-${CLUSTER_NAME}"
           kubectl cluster-info
-          kubectl get nodes -o wide
+          kubectl get nodes -o wide -L k9.io/node-vcpu,k9.io/node-memory-gib
           kubectl get pods -A
           kubectl wait --for=condition=Ready nodes --all --timeout=60s
+          docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}' $(kind get nodes --name "$CLUSTER_NAME")

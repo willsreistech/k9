@@ -7,6 +7,7 @@ O projeto foi pensado para estudo e desenvolvimento. Ele não substitui um clust
 ## O que ele entrega
 
 - Um control plane e dois workers.
+- CPU e memória configuráveis por nó, com limites aplicados pelo Docker.
 - Kubernetes e imagens dos nodes fixados por versão e digest.
 - API Server e NodePorts acessíveis apenas pelo host (`127.0.0.1`).
 - Dados separados por cluster em `$HOME/.local/share/kind`.
@@ -79,6 +80,35 @@ Nomes aceitam apenas letras minúsculas, números e hifens. `DATA_ROOT` permite 
 DATA_ROOT=/caminho/dedicado CLUSTER_NAME=dev-cluster make create
 ```
 
+### CPU e memória
+
+Por padrão, cada nó recebe **1 vCPU e 2 GiB**, um perfil leve para apresentações que mantém o mesmo modelo de dimensionamento usado em cloud. Como a topologia tem três nós, o teto agregado padrão é 3 vCPU e 6 GiB; os limites não representam reserva antecipada, mas cada nó não pode ultrapassá-los.
+
+Escolha outro tamanho no formulário do Backstage ou informe as variáveis no terminal:
+
+```bash
+NODE_CPU=2 NODE_MEMORY_GB=4 make create
+```
+
+Valores aceitos:
+
+| Configuração por nó | Valores |
+|---|---|
+| `NODE_CPU` | `1`, `2`, `4` vCPU |
+| `NODE_MEMORY_GB` | `1`, `2`, `4`, `8` GiB |
+
+O Kind não oferece CPU/memória em seu schema `v1alpha4`. O projeto aplica esses limites aos containers dos nós por cgroups do Docker, desativa memória adicional via swap e verifica o resultado com `docker inspect`. Confira o consumo e o limite efetivo com:
+
+```bash
+docker stats $(kind get nodes --name lab-k8s)
+```
+
+O perfil escolhido também aparece como labels, facilitando a demonstração:
+
+```bash
+kubectl get nodes -L k9.io/node-vcpu,k9.io/node-memory-gib
+```
+
 ## Namespace para workloads
 
 Use `lab-workloads` para os exercícios:
@@ -117,7 +147,7 @@ Os workflows manuais ficam em **Actions → Run workflow**:
 | Validate | Executa lint em scripts e YAML |
 | TechDocs | Publica esta documentação no Backstage |
 
-O setup instala ou atualiza Kind e kubectl em `$HOME/.local/bin` por padrão, sem usar `sudo`. O Docker precisa estar previamente instalado e acessível pelo usuário do runner. Depois de preparar definitivamente o runner, você pode desativar o input `install_dependencies` nas execuções seguintes.
+O setup instala ou atualiza Kind e kubectl em `$HOME/.local/bin` por padrão, sem usar `sudo`. O Docker precisa estar previamente instalado e acessível pelo usuário do runner. Depois de preparar definitivamente o runner, você pode desativar o input `install_dependencies` nas execuções seguintes. Tanto o workflow manual quanto o template do Backstage aceitam CPU e memória por nó.
 
 Os workflows usam um grupo global de concorrência para evitar setup, status e teardown simultâneos. Como as portas do host são fixas, mantenha apenas um destes clusters ativo por host. Se houver vários runners, use a label `production` somente no host que possui o cluster.
 

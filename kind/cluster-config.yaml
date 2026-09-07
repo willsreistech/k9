@@ -4,6 +4,9 @@ apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
   - role: control-plane
     image: __KIND_NODE_IMAGE__
+    labels:
+      k9.io/node-vcpu: "__NODE_CPU__"
+      k9.io/node-memory-gib: "__NODE_MEMORY_GB__"
     # Monta o diretório local para persistência de dados dos labs
     extraMounts:
       - hostPath: __DATA_DIR__
@@ -25,12 +28,18 @@ nodes:
 
   - role: worker
     image: __KIND_NODE_IMAGE__
+    labels:
+      k9.io/node-vcpu: "__NODE_CPU__"
+      k9.io/node-memory-gib: "__NODE_MEMORY_GB__"
     extraMounts:
       - hostPath: __DATA_DIR__
         containerPath: /data
 
   - role: worker
     image: __KIND_NODE_IMAGE__
+    labels:
+      k9.io/node-vcpu: "__NODE_CPU__"
+      k9.io/node-memory-gib: "__NODE_MEMORY_GB__"
     extraMounts:
       - hostPath: __DATA_DIR__
         containerPath: /data

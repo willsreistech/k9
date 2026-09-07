@@ -6,6 +6,8 @@ CLUSTER_NAME="${CLUSTER_NAME:-lab-k8s}"
 CONFIG_FILE="${CONFIG_FILE:-$(dirname "$0")/../kind/cluster-config.yaml}"
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_ROOT="${DATA_ROOT:-$HOME/.local/share/kind}"
+NODE_CPU="${NODE_CPU:-1}"
+NODE_MEMORY_GB="${NODE_MEMORY_GB:-2}"
 RENDERED_CONFIG=""
 
 log() { echo "[$(date '+%H:%M:%S')] $*"; }
@@ -19,6 +21,14 @@ main() {
   }
   [[ "$DATA_ROOT" == /* && "$DATA_ROOT" =~ ^[a-zA-Z0-9._/-]+$ ]] || {
     echo "DATA_ROOT deve ser um caminho absoluto sem espacos: '$DATA_ROOT'." >&2
+    exit 2
+  }
+  [[ "$NODE_CPU" =~ ^(1|2|4)$ ]] || {
+    echo "NODE_CPU invalido: '$NODE_CPU'. Use 1, 2 ou 4." >&2
+    exit 2
+  }
+  [[ "$NODE_MEMORY_GB" =~ ^(1|2|4|8)$ ]] || {
+    echo "NODE_MEMORY_GB invalido: '$NODE_MEMORY_GB'. Use 1, 2, 4 ou 8." >&2
     exit 2
   }
 
@@ -37,13 +47,18 @@ main() {
 
   mkdir -p "$data_dir" "$HOME/.kube"
   chmod 0700 "$data_dir"
-  CONFIG_FILE="$CONFIG_FILE" bash "$PROJECT_ROOT/scripts/render-kind-config.sh" > "$RENDERED_CONFIG"
+  CONFIG_FILE="$CONFIG_FILE" NODE_CPU="$NODE_CPU" NODE_MEMORY_GB="$NODE_MEMORY_GB" \
+    bash "$PROJECT_ROOT/scripts/render-kind-config.sh" > "$RENDERED_CONFIG"
 
   log "Criando cluster Kind '${CLUSTER_NAME}'..."
   kind create cluster \
     --name "${CLUSTER_NAME}" \
     --config "$RENDERED_CONFIG" \
     --wait 120s
+
+  log "Aplicando ${NODE_CPU} vCPU e ${NODE_MEMORY_GB} GiB de memoria por no..."
+  NODE_CPU="$NODE_CPU" NODE_MEMORY_GB="$NODE_MEMORY_GB" \
+    bash "$PROJECT_ROOT/scripts/configure-node-resources.sh"
 
   log "Configurando kubeconfig..."
   kind get kubeconfig --name "${CLUSTER_NAME}" > "$HOME/.kube/config-${CLUSTER_NAME}"
