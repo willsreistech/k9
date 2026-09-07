@@ -52,11 +52,12 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - name: Configure local tools path
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Install Kind & kubectl
         if: ${{ inputs.install_dependencies }}
-        run: |
-          bash scripts/install-deps.sh
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        run: bash scripts/install-deps.sh
 
       - name: Create Kind cluster
         run: bash scripts/setup-cluster.sh

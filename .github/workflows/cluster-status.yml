@@ -19,6 +19,9 @@ jobs:
     env:
       CLUSTER_NAME: lab-k8s
     steps:
+      - name: Configure local tools path
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Cluster list
         run: kind get clusters | grep -Fx "$CLUSTER_NAME"
 
