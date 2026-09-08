@@ -22,5 +22,19 @@ metadata:
 spec:
   type: infrastructure
   lifecycle: experimental
-  owner: user:willsreis
+  owner: user:default/wsr
   system: kind-lab
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: kind-lab
+  title: K9 — Kind Lab Platform
+  description: Sistema que agrupa o laboratório Kubernetes local e seus recursos de plataforma.
+  tags:
+    - kubernetes
+    - kind
+    - infrastructure
+spec:
+  owner: user:default/wsr

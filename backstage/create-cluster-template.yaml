@@ -12,7 +12,7 @@ metadata:
     - kind
     - infrastructure
 spec:
-  owner: user:willsreis
+  owner: user:default/wsr
   type: infrastructure
 
   parameters:
@@ -89,7 +89,7 @@ metadata:
     - kind
     - infrastructure
 spec:
-  owner: user:willsreis
+  owner: user:default/wsr
   type: infrastructure
 
   parameters:
@@ -137,7 +137,7 @@ metadata:
     - kind
     - infrastructure
 spec:
-  owner: user:willsreis
+  owner: user:default/wsr
   type: infrastructure
 
   parameters:
