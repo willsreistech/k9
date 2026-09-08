@@ -23,8 +23,12 @@ permissions:
 
 jobs:
   publish:
-    uses: willsreistech/backstageIO/.github/workflows/techdocs-publish-reusable.yml@8945217e40a68ceae4ab183160fa0154c3817ad1
-    secrets: inherit
+    # main recebe as correções do publicador compartilhado sem depender de um
+    # SHA antigo. Para produção, este ref pode voltar a ser fixado por SHA.
+    uses: willsreistech/backstageIO/.github/workflows/techdocs-publish-reusable.yml@main
+    secrets:
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
     with:
       # namespace/kind/name — deve bater com o catalog-info.yaml
       entity: default/component/k9-kind-lab
