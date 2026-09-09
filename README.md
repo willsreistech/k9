@@ -147,8 +147,6 @@ Os workflows manuais ficam em **Actions → Run workflow**:
 | Validate | Executa lint em scripts e YAML |
 | TechDocs | Publica esta documentação no Backstage |
 
-O workflow **Validate** executa em runners hospedados pelo GitHub (`ubuntu-latest`), separados dos runners operacionais do cluster. Scripts de pull requests não devem executar nos runners que possuem acesso ao Docker e às credenciais Kubernetes do laboratório.
-
 O setup instala ou atualiza Kind e kubectl em `$HOME/.local/bin` por padrão, sem usar `sudo`. O Docker precisa estar previamente instalado e acessível pelo usuário do runner. Depois de preparar definitivamente o runner, você pode desativar o input `install_dependencies` nas execuções seguintes. Tanto o workflow manual quanto o template do Backstage aceitam CPU e memória por nó.
 
 Os workflows usam um grupo global de concorrência para evitar setup, status e teardown simultâneos. Como as portas do host são fixas, mantenha apenas um destes clusters ativo por host. Se houver vários runners, use a label `production` somente no host que possui o cluster.
