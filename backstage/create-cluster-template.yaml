@@ -17,6 +17,9 @@ spec:
 
   parameters:
     - title: Configurar o cluster
+      backstage:permissions:
+        tags:
+          - cluster-create
       required:
         - cluster_name
         - node_cpu
@@ -56,6 +59,9 @@ spec:
     - id: dispatch
       name: Disparar workflow setup-cluster
       action: github:actions:dispatch
+      backstage:permissions:
+        tags:
+          - cluster-create
       input:
         repoUrl: github.com?owner=willsreistech&repo=k9
         workflowId: setup-cluster.yml
@@ -94,6 +100,9 @@ spec:
 
   parameters:
     - title: Identificar o cluster
+      backstage:permissions:
+        tags:
+          - cluster-delete
       required:
         - cluster_name
       properties:
@@ -109,6 +118,9 @@ spec:
     - id: dispatch
       name: Disparar workflow teardown-cluster
       action: github:actions:dispatch
+      backstage:permissions:
+        tags:
+          - cluster-delete
       input:
         repoUrl: github.com?owner=willsreistech&repo=k9
         workflowId: teardown-cluster.yml
@@ -142,6 +154,9 @@ spec:
 
   parameters:
     - title: Confirmar verificação
+      backstage:permissions:
+        tags:
+          - cluster-status
       properties:
         confirm:
           title: Disparar verificação de status agora?
@@ -153,6 +168,9 @@ spec:
     - id: dispatch
       name: Disparar workflow cluster-status
       action: github:actions:dispatch
+      backstage:permissions:
+        tags:
+          - cluster-status
       input:
         repoUrl: github.com?owner=willsreistech&repo=k9
         workflowId: cluster-status.yml
